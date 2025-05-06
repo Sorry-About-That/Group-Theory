@@ -29,8 +29,7 @@ identity (Group elems table _) = elems !! i
   where i = elems `elemIndex` table
 
 isElem :: Word -> Group -> Bool
-isElem word (Group elems _ _) = null invalidChars
-  where invalidChars = filter (`notElem` elems) word
+isElem word (Group elems _ _) = all (`elem` elems) word
 
 reduce :: Word -> Group -> Elem
 reduce []   group = identity group
