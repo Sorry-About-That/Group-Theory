@@ -75,4 +75,3 @@ isCyclic grp  = length elems `elem` map (`order` grp) elems
 
 
 
---(Daniyal figured this all out)
