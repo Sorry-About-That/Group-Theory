@@ -11,31 +11,26 @@ type Word  = [Elem]    -- word is any written product of group elements and thei
 type Table = [[Elem]]  -- this will be the Caley table (without the headers)
 
 
-data Group = Group Table String
+data Group = Group [Elem] Table String
 
-
-groupOperation :: Group -> Elem -> Elem -> Elem
-groupOperation group a b = (table !! i) !! j
-  where
-    (elems, table)       = (toElems group, toTable group)
-    (i, j)               = (a `elemIndex` elems, b `elemIndex` elems)
 
 toElems :: Group -> [Elem]
-toElems group = [0..len]
-  where len   = length (toTable group) - 1
+toElems (Group elems _ _) = elems
 
 toTable :: Group -> Table
-toTable (Group table _) = table
+toTable (Group _ table _) = table
+
+groupOperation :: Group -> Elem -> Elem -> Elem
+groupOperation (Group elems table _) a b = (table !! i) !! j
+  where (i, j) = (a `elemIndex` elems, b `elemIndex` elems)
 
 identity :: Group -> Elem
-identity group     = elems !! i
-  where
-    (elems, table) = (toElems group, toTable group)
-    i              = elems `elemIndex` table
+identity (Group elems table _) = elems !! i
+  where i = elems `elemIndex` table
 
 isElem :: Word -> Group -> Bool
-isElem word group    = null invalidChars
-  where invalidChars = filter (`notElem` toElems group) word
+isElem word (Group elems _ _) = null invalidChars
+  where invalidChars = filter (`notElem` elems) word
 
 reduce :: Word -> Group -> Elem
 reduce []   group = identity group
@@ -47,12 +42,10 @@ order a group = length (takeWhile (/= identity group) (iterate (f a) a)) + 1
   where f     = groupOperation group
 
 cardinality :: Group -> Int
-cardinality = length . toTable
-
+cardinality (Group elems _ _) = length elems
 
 isAbelian :: Group -> Bool
-isAbelian (Group table _) = transpose table == table
+isAbelian (Group _ table _) = transpose table == table
 
 isCyclic :: Group -> Bool
-isCyclic group = length elems `elem` map (`order` group) elems
-  where elems  = toElems group
+isCyclic group@(Group elems _ _) = length elems `elem` map (`order` group) elems
