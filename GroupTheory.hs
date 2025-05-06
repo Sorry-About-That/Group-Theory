@@ -11,33 +11,27 @@ type Word  = [Elem]    -- word is any written product of group elements and thei
 type Table = [[Elem]]  -- this will be the Caley table (without the headers)
 
 
-data Caley = Caley [Elem] Table
-
-data Group = Group Caley String
+data Group = Group Table String
 
 
 groupOperation :: Group -> Elem -> Elem -> Elem
-groupOperation (Group caley _) a b = (table !! i) !! j
+groupOperation group a b = (table !! i) !! j
   where
-    Caley elems table              = caley
-    (i, j)                         = (a `elemIndex` elems, b `elemIndex` elems)
-
-toCaley :: Group -> Caley
-toCaley (Group caley _) = caley
-
-toTable :: Group -> Table
-toTable group           = table
-  where Caley _ table   = toCaley group
+    (elems, table)       = (toElems group, toTable group)
+    (i, j)               = (a `elemIndex` elems, b `elemIndex` elems)
 
 toElems :: Group -> [Elem]
-toElems group           = elems
-  where Caley elems _   = toCaley group
+toElems group = [0..len]
+  where len   = length (toTable group) - 1
+
+toTable :: Group -> Table
+toTable (Group table _) = table
 
 identity :: Group -> Elem
-identity (Group caley _) = elems !! i
+identity group     = elems !! i
   where
-    Caley elems table    = caley
-    i                    = elems `elemIndex` table
+    (elems, table) = (toElems group, toTable group)
+    i              = elems `elemIndex` table
 
 isElem :: Word -> Group -> Bool
 isElem word group    = null invalidChars
@@ -53,12 +47,11 @@ order a group = length (takeWhile (/= identity group) (iterate (f a) a)) + 1
   where f     = groupOperation group
 
 cardinality :: Group -> Int
-cardinality = length . toElems
+cardinality = length . toTable
 
 
 isAbelian :: Group -> Bool
-isAbelian group = transpose table == table
-  where table   = toTable group
+isAbelian (Group table _) = transpose table == table
 
 isCyclic :: Group -> Bool
 isCyclic group = length elems `elem` map (`order` group) elems
